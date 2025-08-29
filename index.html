@@ -190,6 +190,75 @@
             border-radius: 4px;
         }
 
+        .connection-status {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .connection-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .connection-indicator.connected {
+            color: #27ae60;
+        }
+
+        .connection-indicator.disconnected {
+            color: #95a5a6;
+        }
+
+        .connection-indicator i {
+            font-size: 0.7rem;
+        }
+
+        .handshake-time {
+            font-size: 0.75rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .endpoint {
+            font-size: 0.75rem;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        .usage-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .usage-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .usage-item i {
+            font-size: 0.7rem;
+            width: 10px;
+        }
+
+        .usage-item:first-child {
+            color: #3498db;
+        }
+
+        .usage-item:last-child {
+            color: #e67e22;
+        }
+
+        .users-table tr.connected {
+            border-left: 3px solid #27ae60;
+        }
+
         .btn-sm {
             padding: 8px 16px;
             font-size: 0.9rem;
@@ -379,6 +448,10 @@
                     <div class="stat-number" id="activeUsers">0</div>
                     <div class="stat-label">Active Users</div>
                 </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                    <div class="stat-number" id="connectedUsers">0</div>
+                    <div class="stat-label">Connected Now</div>
+                </div>
                 <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
                     <div class="stat-number" id="disabledUsers">0</div>
                     <div class="stat-label">Disabled Users</div>
@@ -401,8 +474,9 @@
                             <tr>
                                 <th>User</th>
                                 <th>Status</th>
+                                <th>Connection</th>
                                 <th>IP Address</th>
-                                <th>Public Key</th>
+                                <th>Usage</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>

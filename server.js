@@ -141,6 +141,82 @@ async function addNewUserWithScript(username, ip) {
     }
 }
 
+async function getWireGuardStatus() {
+    try {
+        // Try with sudo first, then fallback to regular wg command
+        let stdout;
+        try {
+            const result = await execAsync('sudo wg show', { timeout: 5000 });
+            stdout = result.stdout;
+        } catch (sudoError) {
+            console.warn('sudo wg show failed, trying without sudo:', sudoError.message);
+            try {
+                const result = await execAsync('wg show', { timeout: 5000 });
+                stdout = result.stdout;
+            } catch (regularError) {
+                console.warn('wg show failed:', regularError.message);
+                return [];
+            }
+        }
+        
+        const peers = [];
+        const lines = stdout.split('\n');
+        
+        let currentPeer = null;
+        
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            
+            if (trimmedLine.startsWith('peer:')) {
+                // Save previous peer if exists
+                if (currentPeer) {
+                    peers.push(currentPeer);
+                }
+                
+                // Start new peer
+                currentPeer = {
+                    publicKey: trimmedLine.replace('peer:', '').trim(),
+                    endpoint: null,
+                    allowedIPs: null,
+                    latestHandshake: null,
+                    transferReceived: null,
+                    transferSent: null,
+                    isConnected: false
+                };
+            } else if (currentPeer) {
+                if (trimmedLine.startsWith('endpoint:')) {
+                    currentPeer.endpoint = trimmedLine.replace('endpoint:', '').trim();
+                } else if (trimmedLine.startsWith('allowed ips:')) {
+                    currentPeer.allowedIPs = trimmedLine.replace('allowed ips:', '').trim();
+                } else if (trimmedLine.startsWith('latest handshake:')) {
+                    const handshake = trimmedLine.replace('latest handshake:', '').trim();
+                    currentPeer.latestHandshake = handshake;
+                    // Consider connected if handshake is within last 3 minutes
+                    currentPeer.isConnected = !handshake.includes('never') && 
+                        (handshake.includes('second') || handshake.includes('minute'));
+                } else if (trimmedLine.startsWith('transfer:')) {
+                    const transfer = trimmedLine.replace('transfer:', '').trim();
+                    const parts = transfer.split(',');
+                    if (parts.length >= 2) {
+                        currentPeer.transferReceived = parts[0].trim().replace(' received', '');
+                        currentPeer.transferSent = parts[1].trim().replace(' sent', '');
+                    }
+                }
+            }
+        }
+        
+        // Add the last peer
+        if (currentPeer) {
+            peers.push(currentPeer);
+        }
+        
+        return peers;
+    } catch (error) {
+        console.error('Error getting WireGuard status:', error);
+        return [];
+    }
+}
+
 // Authentication routes
 app.post('/api/auth/login', async (req, res) => {
     try {
@@ -312,6 +388,57 @@ app.get('/api/users', authenticateToken, async (req, res) => {
         res.status(500).json({ 
             success: false, 
             error: 'Failed to parse users from configuration',
+            details: error.message 
+        });
+    }
+});
+
+// Get WireGuard connection status and usage
+app.get('/api/users/status', authenticateToken, async (req, res) => {
+    try {
+        const [configUsers, wgStatus] = await Promise.all([
+            (async () => {
+                const configContent = await fs.readFile(CONFIG_PATH, 'utf8');
+                return parseUsersFromConfig(configContent);
+            })(),
+            getWireGuardStatus()
+        ]);
+
+        // Merge config users with WireGuard status
+        const usersWithStatus = configUsers.map(user => {
+            const wgPeer = wgStatus.find(peer => peer.publicKey === user.publicKey);
+            return {
+                ...user,
+                connectionStatus: wgPeer ? {
+                    isConnected: wgPeer.isConnected,
+                    endpoint: wgPeer.endpoint,
+                    latestHandshake: wgPeer.latestHandshake,
+                    transferReceived: wgPeer.transferReceived,
+                    transferSent: wgPeer.transferSent
+                } : {
+                    isConnected: false,
+                    endpoint: null,
+                    latestHandshake: 'never',
+                    transferReceived: '0 B',
+                    transferSent: '0 B'
+                }
+            };
+        });
+
+        res.json({ 
+            success: true, 
+            users: usersWithStatus,
+            summary: {
+                totalUsers: configUsers.length,
+                connectedUsers: wgStatus.filter(peer => peer.isConnected).length,
+                enabledUsers: configUsers.filter(user => user.enabled).length
+            }
+        });
+    } catch (error) {
+        console.error('Error getting user status:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to get user status',
             details: error.message 
         });
     }

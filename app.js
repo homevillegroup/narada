@@ -15,10 +15,18 @@ class WireGuardController {
         }
         
         await this.loadBranding();
-        await this.loadUsers();
+        await this.loadUsersWithStatus();
         this.updateStats();
         this.renderUsers();
         this.addLogoutButton();
+        
+        // Auto-refresh status every 30 seconds
+        setInterval(() => {
+            this.loadUsersWithStatus().then(() => {
+                this.updateStats();
+                this.renderUsers();
+            });
+        }, 30000);
     }
 
     async loadBranding() {
@@ -132,16 +140,45 @@ class WireGuardController {
         }
     }
 
+    async loadUsersWithStatus() {
+        try {
+            const response = await fetch('/api/users/status', {
+                headers: this.getAuthHeaders()
+            });
+
+            if (await this.handleAuthError(response)) return;
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.users = data.users;
+                this.summary = data.summary;
+            } else {
+                throw new Error(data.error || 'Failed to load user status');
+            }
+        } catch (error) {
+            console.error('Error loading user status:', error);
+            this.showNotification('Error loading user status', 'error');
+        }
+    }
+
 
 
     updateStats() {
         const totalUsers = this.users.length;
         const activeUsers = this.users.filter(user => user.enabled).length;
         const disabledUsers = totalUsers - activeUsers;
+        const connectedUsers = this.users.filter(user => user.connectionStatus?.isConnected).length;
 
         document.getElementById('totalUsers').textContent = totalUsers;
         document.getElementById('activeUsers').textContent = activeUsers;
         document.getElementById('disabledUsers').textContent = disabledUsers;
+        
+        // Update connected users if element exists
+        const connectedElement = document.getElementById('connectedUsers');
+        if (connectedElement) {
+            connectedElement.textContent = connectedUsers;
+        }
     }
 
     renderUsers() {
@@ -182,7 +219,7 @@ class WireGuardController {
 
         const tableBody = document.getElementById('usersTableBody');
         tableBody.innerHTML = this.users.map(user => `
-            <tr class="${!user.enabled ? 'disabled' : ''}">
+            <tr class="${!user.enabled ? 'disabled' : ''} ${user.connectionStatus?.isConnected ? 'connected' : ''}">
                 <td>
                     <div class="user-name">${user.name || 'Unnamed User'}</div>
                     ${user.email ? `<div class="user-email">${user.email}</div>` : ''}
@@ -193,10 +230,29 @@ class WireGuardController {
                     </span>
                 </td>
                 <td>
-                    <span class="user-ip">${user.allowedIPs}</span>
+                    <div class="connection-status">
+                        <span class="connection-indicator ${user.connectionStatus?.isConnected ? 'connected' : 'disconnected'}">
+                            <i class="fas fa-circle"></i>
+                            ${user.connectionStatus?.isConnected ? 'Connected' : 'Offline'}
+                        </span>
+                        ${user.connectionStatus?.isConnected && user.connectionStatus?.latestHandshake ? 
+                            `<div class="handshake-time">${user.connectionStatus.latestHandshake}</div>` : ''}
+                    </div>
                 </td>
                 <td>
-                    <code style="font-size: 0.8rem; color: #666;">${this.truncateKey(user.publicKey)}</code>
+                    <span class="user-ip">${user.allowedIPs}</span>
+                    ${user.connectionStatus?.endpoint ? 
+                        `<div class="endpoint">${user.connectionStatus.endpoint}</div>` : ''}
+                </td>
+                <td>
+                    <div class="usage-stats">
+                        <div class="usage-item">
+                            <i class="fas fa-arrow-down"></i> ${user.connectionStatus?.transferReceived || '0 B'}
+                        </div>
+                        <div class="usage-item">
+                            <i class="fas fa-arrow-up"></i> ${user.connectionStatus?.transferSent || '0 B'}
+                        </div>
+                    </div>
                 </td>
                 <td>
                     <div class="user-actions">
@@ -268,7 +324,7 @@ class WireGuardController {
 
             if (data.success) {
                 // Reload users to get the updated list
-                await this.loadUsers();
+                await this.loadUsersWithStatus();
                 this.updateStats();
                 this.renderUsers();
                 
@@ -427,7 +483,7 @@ class WireGuardController {
 
     async reloadConfig() {
         try {
-            await this.loadUsers();
+            await this.loadUsersWithStatus();
             this.updateStats();
             this.renderUsers();
             this.showNotification('Configuration reloaded successfully', 'success');
