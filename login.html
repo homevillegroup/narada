@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NARADA - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header .logo {
+            max-width: 200px;
+            height: auto;
+            margin: 0 auto 1rem auto;
+            display: block;
+            text-align: center;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-input.error {
+            border-color: #e74c3c;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .input-group .form-input {
+            padding-left: 2.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <img id="logo" alt="Logo" class="logo" style="display: none;">
+            <i id="defaultIcon" class="fas fa-shield-alt"></i>
+            <h1>NARADA</h1>
+            <p>Please sign in to continue</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" class="form-input" placeholder="Enter your username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i> Signing in...
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const loading = document.getElementById('loading');
+            const loginBtn = document.getElementById('loginBtn');
+
+            // Clear previous errors
+            errorMessage.textContent = '';
+            document.getElementById('username').classList.remove('error');
+            document.getElementById('password').classList.remove('error');
+
+            // Show loading
+            loading.style.display = 'block';
+            loginBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Store token
+                    localStorage.setItem('authToken', data.token);
+
+                    // Redirect to main page
+                    window.location.href = '/';
+                } else {
+                    errorMessage.textContent = data.error || 'Login failed';
+                    document.getElementById('username').classList.add('error');
+                    document.getElementById('password').classList.add('error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.textContent = 'Connection error. Please try again.';
+            } finally {
+                loading.style.display = 'none';
+                loginBtn.disabled = false;
+            }
+        });
+
+        // Load branding
+        async function loadBranding() {
+            try {
+                const response = await fetch('/api/config/branding');
+                const data = await response.json();
+                if (data.success && data.logoUrl) {
+                    const logo = document.getElementById('logo');
+                    const icon = document.getElementById('defaultIcon');
+
+                    // Set up error handler before setting src
+                    logo.onerror = function () {
+                        this.style.display = 'none';
+                        icon.style.display = 'block';
+                    };
+
+                    logo.onload = function () {
+                        this.style.display = 'block';
+                        icon.style.display = 'none';
+                    };
+
+                    logo.src = data.logoUrl;
+                }
+            } catch (error) {
+                console.log('Could not load branding, using default icon');
+            }
+        }
+
+        // Check if already logged in - only run once on page load
+        let hasCheckedAuth = false;
+
+        async function checkExistingAuth() {
+            if (hasCheckedAuth) return;
+            hasCheckedAuth = true;
+
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = '/';
+                        return;
+                    }
+                }
+
+                // If we get here, token is invalid
+                localStorage.removeItem('authToken');
+            } catch (error) {
+                // Token invalid or network error, remove it
+                localStorage.removeItem('authToken');
+            }
+        }
+
+        // Initialize page - run only once when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadBranding();
+            await checkExistingAuth();
+        });
+    </script>
+</body>
+
+</html>

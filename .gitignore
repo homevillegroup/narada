@@ -1,0 +1,6 @@
+wg0.conf
+node_modules
+backup/*
+.env
+package-lock.json
+script/
