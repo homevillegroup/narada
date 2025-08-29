@@ -257,6 +257,28 @@
 
         .users-table tr.connected {
             border-left: 3px solid #27ae60;
+            background-color: #f8fff8;
+        }
+
+        .users-table tr.connected:hover {
+            background-color: #f0fff0;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.2s ease;
+        }
+
+        .sortable:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sort-indicator {
+            margin-left: 5px;
+            font-size: 0.7rem;
+            opacity: 0.7;
         }
 
         .btn-sm {
@@ -472,11 +494,19 @@
                     <table class="users-table" id="usersTable">
                         <thead>
                             <tr>
-                                <th>User</th>
-                                <th>Status</th>
-                                <th>Connection</th>
+                                <th class="sortable" data-sort="name" onclick="controller.setSortBy('name')">
+                                    User
+                                </th>
+                                <th class="sortable" data-sort="status" onclick="controller.setSortBy('status')">
+                                    Status
+                                </th>
+                                <th class="sortable" data-sort="connection" onclick="controller.setSortBy('connection')">
+                                    Connection
+                                </th>
                                 <th>IP Address</th>
-                                <th>Usage</th>
+                                <th class="sortable" data-sort="usage" onclick="controller.setSortBy('usage')">
+                                    Usage
+                                </th>
                                 <th>Actions</th>
                             </tr>
                         </thead>

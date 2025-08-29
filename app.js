@@ -4,6 +4,8 @@ class WireGuardController {
         this.configPath = 'wg0.conf';
         this.authToken = localStorage.getItem('authToken');
         this.isVerifying = false;
+        this.sortBy = 'connection'; // Default sort by connection status
+        this.sortOrder = 'desc'; // desc = connected first, asc = disconnected first
         this.init();
     }
 
@@ -196,6 +198,9 @@ class WireGuardController {
             return;
         }
 
+        // Sort users before rendering
+        this.sortUsers();
+
         // Show table if hidden
         if (usersContainer.innerHTML.includes('empty-state')) {
             usersContainer.innerHTML = `
@@ -271,12 +276,114 @@ class WireGuardController {
                 </td>
             </tr>
         `).join('');
+        
+        // Update sort indicators after rendering
+        this.updateSortIndicators();
     }
 
     truncateKey(key) {
         if (!key) return 'N/A';
         // Always mask the public key for security
         return '••••••••••••••••••••';
+    }
+
+    sortUsers() {
+        this.users.sort((a, b) => {
+            switch (this.sortBy) {
+                case 'connection':
+                    const aConnected = a.connectionStatus?.isConnected ? 1 : 0;
+                    const bConnected = b.connectionStatus?.isConnected ? 1 : 0;
+                    if (this.sortOrder === 'desc') {
+                        return bConnected - aConnected;
+                    } else {
+                        return aConnected - bConnected;
+                    }
+                
+                case 'usage':
+                    const aUsage = this.parseDataSize(a.connectionStatus?.transferReceived || '0 B') + 
+                                  this.parseDataSize(a.connectionStatus?.transferSent || '0 B');
+                    const bUsage = this.parseDataSize(b.connectionStatus?.transferReceived || '0 B') + 
+                                  this.parseDataSize(b.connectionStatus?.transferSent || '0 B');
+                    if (this.sortOrder === 'desc') {
+                        return bUsage - aUsage;
+                    } else {
+                        return aUsage - bUsage;
+                    }
+                
+                case 'status':
+                    const aStatus = a.enabled ? 1 : 0;
+                    const bStatus = b.enabled ? 1 : 0;
+                    if (this.sortOrder === 'desc') {
+                        return bStatus - aStatus;
+                    } else {
+                        return aStatus - bStatus;
+                    }
+                
+                case 'name':
+                    const aName = (a.name || '').toLowerCase();
+                    const bName = (b.name || '').toLowerCase();
+                    if (this.sortOrder === 'desc') {
+                        return bName.localeCompare(aName);
+                    } else {
+                        return aName.localeCompare(bName);
+                    }
+                
+                default:
+                    return 0;
+            }
+        });
+    }
+
+    parseDataSize(sizeStr) {
+        if (!sizeStr || sizeStr === '0 B') return 0;
+        
+        const units = {
+            'B': 1,
+            'KiB': 1024,
+            'MiB': 1024 * 1024,
+            'GiB': 1024 * 1024 * 1024,
+            'KB': 1000,
+            'MB': 1000 * 1000,
+            'GB': 1000 * 1000 * 1000
+        };
+        
+        const match = sizeStr.match(/^([\d.]+)\s*(\w+)$/);
+        if (!match) return 0;
+        
+        const value = parseFloat(match[1]);
+        const unit = match[2];
+        
+        return value * (units[unit] || 1);
+    }
+
+    setSortBy(sortBy) {
+        if (this.sortBy === sortBy) {
+            // Toggle sort order if same column
+            this.sortOrder = this.sortOrder === 'desc' ? 'asc' : 'desc';
+        } else {
+            // Set new sort column with default order
+            this.sortBy = sortBy;
+            this.sortOrder = sortBy === 'connection' || sortBy === 'usage' || sortBy === 'status' ? 'desc' : 'asc';
+        }
+        
+        this.sortUsers();
+        this.renderUsers();
+        this.updateSortIndicators();
+    }
+
+    updateSortIndicators() {
+        // Remove all existing sort indicators
+        document.querySelectorAll('.sort-indicator').forEach(el => el.remove());
+        
+        // Add indicator to current sort column
+        const currentHeader = document.querySelector(`[data-sort="${this.sortBy}"]`);
+        if (currentHeader) {
+            const indicator = document.createElement('i');
+            indicator.className = `fas fa-chevron-${this.sortOrder === 'desc' ? 'down' : 'up'} sort-indicator`;
+            indicator.style.marginLeft = '5px';
+            indicator.style.fontSize = '0.7rem';
+            currentHeader.appendChild(indicator);
+        }
     }
 
     async toggleUser(publicKey, enable) {
