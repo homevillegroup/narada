@@ -82,7 +82,6 @@ async function cleanupOldBackups() {
             for (const file of filesToDelete) {
                 try {
                     await fs.unlink(file.path);
-                    console.log('Deleted old backup:', file.name);
                 } catch (error) {
                     console.warn('Could not delete old backup:', file.name, error.message);
                 }
@@ -96,11 +95,8 @@ async function cleanupOldBackups() {
 async function getLastUsedIP() {
     try {
         const scriptPath = path.join(__dirname, 'script/find_last_used_ip.sh');
-        console.log('Running script:', scriptPath, 'with config:', CONFIG_PATH);
         const { stdout } = await execAsync(`bash ${scriptPath} ${CONFIG_PATH}`);
-        console.log('Script output:', stdout);
         const lastIP = stdout.trim().replace('Last assigned IP address: ', '');
-        console.log('Last IP:', lastIP);
         return lastIP || '10.0.0.1';
     } catch (error) {
         console.error('Error getting last used IP:', error);
@@ -117,17 +113,11 @@ function getNextIP(lastIP) {
 async function addNewUserWithScript(username, ip) {
     try {
         const scriptPath = path.join(__dirname, 'script/add_new_user.sh');
-        console.log('Running add user script:', scriptPath, 'with args:', username, ip, CONFIG_PATH);
         
         // Make sure script is executable
         await execAsync(`chmod +x ${scriptPath}`);
         
         const { stdout, stderr } = await execAsync(`bash ${scriptPath} ${username} ${ip} ${CONFIG_PATH}`);
-        
-        console.log('Script stdout:', stdout);
-        if (stderr) {
-            console.warn('Script stderr:', stderr);
-        }
         
         // Check if script execution was successful
         if (stdout.includes('Error:') || stderr.includes('Error:')) {
@@ -136,14 +126,11 @@ async function addNewUserWithScript(username, ip) {
         
         // The script should output the client config path
         const clientConfigPath = `/etc/wireguard/clients/${username}/${username}.conf`;
-        console.log('Expected client config path:', clientConfigPath);
         
         // Verify the client config was created
         try {
             await fs.access(clientConfigPath);
-            console.log('Client config file created successfully');
         } catch (error) {
-            console.error('Client config file not found:', error);
             throw new Error('Client configuration file was not created');
         }
         
@@ -279,7 +266,6 @@ app.post('/api/config', authenticateToken, async (req, res) => {
         try {
             const currentConfig = await fs.readFile(CONFIG_PATH, 'utf8');
             await fs.writeFile(backupPath, currentConfig);
-            console.log('Backup created:', backupPath);
             await cleanupOldBackups();
         } catch (backupError) {
             console.warn('Could not create backup:', backupError.message);
@@ -310,22 +296,7 @@ app.get('/api/users', authenticateToken, async (req, res) => {
     try {
         const configContent = await fs.readFile(CONFIG_PATH, 'utf8');
         
-        // Mask keys in debug output
-        const maskedPreview = configContent
-            .replace(/PublicKey\s*=\s*[A-Za-z0-9+/=]+/g, 'PublicKey = ••••••••••••••••••••')
-            .replace(/PrivateKey\s*=\s*[A-Za-z0-9+/=]+/g, 'PrivateKey = ••••••••••••••••••••')
-            .substring(0, 500) + '...';
-        console.log('Raw config content preview:', maskedPreview);
-        
         const users = parseUsersFromConfig(configContent);
-        console.log('Parsed users count:', users.length);
-        
-        // Log users without exposing public keys
-        const sanitizedUsers = users.map(user => ({
-            ...user,
-            publicKey: user.publicKey ? '••••••••••••••••••••' : ''
-        }));
-        console.log('Parsed users:', JSON.stringify(sanitizedUsers, null, 2));
         
         // Validate users have required fields
         const validUsers = users.filter(user => {
@@ -335,8 +306,6 @@ app.get('/api/users', authenticateToken, async (req, res) => {
             }
             return isValid;
         });
-        
-        console.log('Valid users count:', validUsers.length);
         res.json({ success: true, users: validUsers });
     } catch (error) {
         console.error('Error parsing users:', error);
@@ -405,27 +374,9 @@ app.post('/api/users', authenticateToken, async (req, res) => {
         let clientConfig;
         try {
             clientConfig = await fs.readFile(clientConfigPath, 'utf8');
-            console.log('Client config read successfully');
         } catch (error) {
             console.error('Error reading client config:', error);
             clientConfig = 'Configuration file not found. Please check the server logs.';
-        }
-
-        // Verify the user was added to the main config by re-parsing
-        try {
-            const updatedConfigContent = await fs.readFile(CONFIG_PATH, 'utf8');
-            const updatedUsers = parseUsersFromConfig(updatedConfigContent);
-            const newUser = updatedUsers.find(u => u.name === username);
-            
-            if (!newUser) {
-                console.warn('User was not found in updated config');
-            } else if (!newUser.publicKey) {
-                console.warn('User found but missing public key');
-            } else {
-                console.log('User successfully added with public key: ••••••••••••••••••••');
-            }
-        } catch (error) {
-            console.error('Error verifying user addition:', error);
         }
 
         res.json({ 
@@ -489,13 +440,25 @@ app.patch('/api/users/:publicKey', authenticateToken, async (req, res) => {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupPath = path.join(backupDir, `wg0.conf.backup.${timestamp}`);
         await fs.writeFile(backupPath, configContent);
-        console.log('Backup created:', backupPath);
         await cleanupOldBackups();
         await fs.writeFile(CONFIG_PATH, newConfig);
 
+        // Reload WireGuard configuration
+        try {
+            await execAsync('sudo wg-quick down wg0');
+            await execAsync('sudo wg-quick up wg0');
+        } catch (reloadError) {
+            console.warn('Failed to reload WireGuard configuration:', reloadError.message);
+            return res.json({ 
+                success: true, 
+                message: `User ${enabled ? 'enabled' : 'disabled'} successfully, but WireGuard reload failed. Please reload manually.`,
+                warning: 'WireGuard configuration not reloaded automatically'
+            });
+        }
+
         res.json({ 
             success: true, 
-            message: `User ${enabled ? 'enabled' : 'disabled'} successfully` 
+            message: `User ${enabled ? 'enabled' : 'disabled'} and WireGuard configuration reloaded successfully` 
         });
     } catch (error) {
         console.error('Error toggling user:', error);
