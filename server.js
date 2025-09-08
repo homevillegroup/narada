@@ -113,27 +113,27 @@ function getNextIP(lastIP) {
 async function addNewUserWithScript(username, ip) {
     try {
         const scriptPath = path.join(__dirname, 'script/add_new_user.sh');
-        
+
         // Make sure script is executable
         await execAsync(`chmod +x ${scriptPath}`);
-        
+
         const { stdout, stderr } = await execAsync(`bash ${scriptPath} ${username} ${ip} ${CONFIG_PATH}`);
-        
+
         // Check if script execution was successful
         if (stdout.includes('Error:') || stderr.includes('Error:')) {
             throw new Error(`Script execution failed: ${stdout} ${stderr}`);
         }
-        
+
         // The script should output the client config path
         const clientConfigPath = `/etc/wireguard/clients/${username}/${username}.conf`;
-        
+
         // Verify the client config was created
         try {
             await fs.access(clientConfigPath);
         } catch (error) {
             throw new Error('Client configuration file was not created');
         }
-        
+
         return clientConfigPath;
     } catch (error) {
         console.error('Error executing add_new_user script:', error);
@@ -158,21 +158,21 @@ async function getWireGuardStatus() {
                 return [];
             }
         }
-        
+
         const peers = [];
         const lines = stdout.split('\n');
-        
+
         let currentPeer = null;
-        
+
         for (const line of lines) {
             const trimmedLine = line.trim();
-            
+
             if (trimmedLine.startsWith('peer:')) {
                 // Save previous peer if exists
                 if (currentPeer) {
                     peers.push(currentPeer);
                 }
-                
+
                 // Start new peer
                 currentPeer = {
                     publicKey: trimmedLine.replace('peer:', '').trim(),
@@ -192,7 +192,7 @@ async function getWireGuardStatus() {
                     const handshake = trimmedLine.replace('latest handshake:', '').trim();
                     currentPeer.latestHandshake = handshake;
                     // Consider connected if handshake is within last 3 minutes
-                    currentPeer.isConnected = !handshake.includes('never') && 
+                    currentPeer.isConnected = !handshake.includes('never') &&
                         (handshake.includes('second') || handshake.includes('minute'));
                 } else if (trimmedLine.startsWith('transfer:')) {
                     const transfer = trimmedLine.replace('transfer:', '').trim();
@@ -204,12 +204,12 @@ async function getWireGuardStatus() {
                 }
             }
         }
-        
+
         // Add the last peer
         if (currentPeer) {
             peers.push(currentPeer);
         }
-        
+
         return peers;
     } catch (error) {
         console.error('Error getting WireGuard status:', error);
@@ -300,19 +300,19 @@ app.get('/login', (req, res) => {
 app.get('/api/config', authenticateToken, async (req, res) => {
     try {
         const configContent = await fs.readFile(CONFIG_PATH, 'utf8');
-        
+
         // Mask public keys and private keys in the config for security
         const maskedConfig = configContent
             .replace(/PublicKey\s*=\s*[A-Za-z0-9+/=]+/g, 'PublicKey = ••••••••••••••••••••')
             .replace(/PrivateKey\s*=\s*[A-Za-z0-9+/=]+/g, 'PrivateKey = ••••••••••••••••••••');
-        
+
         res.json({ success: true, config: maskedConfig });
     } catch (error) {
         console.error('Error reading config:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'Failed to read configuration file',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -321,11 +321,11 @@ app.get('/api/config', authenticateToken, async (req, res) => {
 app.post('/api/config', authenticateToken, async (req, res) => {
     try {
         const { config } = req.body;
-        
+
         if (!config) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Configuration content is required' 
+            return res.status(400).json({
+                success: false,
+                error: 'Configuration content is required'
             });
         }
 
@@ -336,7 +336,7 @@ app.post('/api/config', authenticateToken, async (req, res) => {
         } catch (error) {
             console.warn('Could not create backup directory:', error.message);
         }
-        
+
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupPath = path.join(backupDir, `wg0.conf.backup.${timestamp}`);
         try {
@@ -349,7 +349,7 @@ app.post('/api/config', authenticateToken, async (req, res) => {
 
         // Write new configuration
         await fs.writeFile(CONFIG_PATH, config);
-        
+
         // Restart WireGuard service (optional - uncomment if needed)
         // const { exec } = require('child_process');
         // exec('systemctl restart wg-quick@wg0', (error) => {
@@ -359,10 +359,10 @@ app.post('/api/config', authenticateToken, async (req, res) => {
         res.json({ success: true, message: 'Configuration updated successfully' });
     } catch (error) {
         console.error('Error updating config:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'Failed to update configuration file',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -371,9 +371,9 @@ app.post('/api/config', authenticateToken, async (req, res) => {
 app.get('/api/users', authenticateToken, async (req, res) => {
     try {
         const configContent = await fs.readFile(CONFIG_PATH, 'utf8');
-        
+
         const users = parseUsersFromConfig(configContent);
-        
+
         // Validate users have required fields
         const validUsers = users.filter(user => {
             const isValid = user.name && user.allowedIPs;
@@ -385,10 +385,10 @@ app.get('/api/users', authenticateToken, async (req, res) => {
         res.json({ success: true, users: validUsers });
     } catch (error) {
         console.error('Error parsing users:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'Failed to parse users from configuration',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -425,8 +425,8 @@ app.get('/api/users/status', authenticateToken, async (req, res) => {
             };
         });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             users: usersWithStatus,
             summary: {
                 totalUsers: configUsers.length,
@@ -436,10 +436,10 @@ app.get('/api/users/status', authenticateToken, async (req, res) => {
         });
     } catch (error) {
         console.error('Error getting user status:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'Failed to get user status',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -448,20 +448,20 @@ app.get('/api/users/status', authenticateToken, async (req, res) => {
 app.post('/api/users', authenticateToken, async (req, res) => {
     try {
         const { email } = req.body;
-        
+
         if (!email) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Email is required' 
+            return res.status(400).json({
+                success: false,
+                error: 'Email is required'
             });
         }
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Invalid email format' 
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid email format'
             });
         }
 
@@ -471,11 +471,11 @@ app.post('/api/users', authenticateToken, async (req, res) => {
         // Check if user already exists
         const configContent = await fs.readFile(CONFIG_PATH, 'utf8');
         const users = parseUsersFromConfig(configContent);
-        
+
         if (users.some(user => user.name === username || user.email === email)) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'User with this email or username already exists' 
+            return res.status(400).json({
+                success: false,
+                error: 'User with this email or username already exists'
             });
         }
 
@@ -485,9 +485,9 @@ app.post('/api/users', authenticateToken, async (req, res) => {
 
         // Double-check IP is not in use
         if (users.some(user => user.allowedIPs.includes(nextIP))) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Generated IP address is already in use' 
+            return res.status(400).json({
+                success: false,
+                error: 'Generated IP address is already in use'
             });
         }
 
@@ -506,8 +506,8 @@ app.post('/api/users', authenticateToken, async (req, res) => {
             clientConfig = 'Configuration file not found. Please check the server logs.';
         }
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'User added successfully',
             user: {
                 username,
@@ -519,10 +519,101 @@ app.post('/api/users', authenticateToken, async (req, res) => {
         });
     } catch (error) {
         console.error('Error adding user:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'Failed to add user',
-            details: error.message 
+            details: error.message
+        });
+    }
+});
+
+// Bulk toggle user status (enable/disable multiple users)
+app.patch('/api/users/bulk', authenticateToken, async (req, res) => {
+    try {
+        const { publicKeys, enabled } = req.body;
+
+        if (!Array.isArray(publicKeys) || publicKeys.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'publicKeys array is required and must not be empty'
+            });
+        }
+
+        if (typeof enabled !== 'boolean') {
+            return res.status(400).json({
+                success: false,
+                error: 'enabled field must be a boolean'
+            });
+        }
+
+        const configContent = await fs.readFile(CONFIG_PATH, 'utf8');
+        const users = parseUsersFromConfig(configContent);
+
+        let updatedCount = 0;
+        const notFoundKeys = [];
+
+        // Update users
+        publicKeys.forEach(publicKey => {
+            const user = users.find(u => u.publicKey === publicKey);
+            if (user) {
+                user.enabled = enabled;
+                updatedCount++;
+            } else {
+                notFoundKeys.push(publicKey);
+            }
+        });
+
+        if (updatedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'No users found with the provided public keys'
+            });
+        }
+
+        // Generate new config
+        const newConfig = generateConfig(configContent, users);
+
+        // Create backup and write new config
+        const backupDir = path.join(__dirname, 'backup');
+        try {
+            await fs.mkdir(backupDir, { recursive: true });
+        } catch (error) {
+            console.warn('Could not create backup directory:', error.message);
+        }
+
+        const timestamp = Date.now();
+        const backupPath = path.join(backupDir, `wg0.conf.backup.${timestamp}`);
+        await fs.writeFile(backupPath, configContent);
+        await cleanupOldBackups();
+        await fs.writeFile(CONFIG_PATH, newConfig);
+
+        // Reload WireGuard configuration
+        try {
+            await execAsync('sudo wg-quick down wg0');
+            await execAsync('sudo wg-quick up wg0');
+        } catch (reloadError) {
+            console.warn('Failed to reload WireGuard configuration:', reloadError.message);
+            return res.json({
+                success: true,
+                message: `${updatedCount} user(s) ${enabled ? 'enabled' : 'disabled'} successfully, but WireGuard reload failed. Please reload manually.`,
+                warning: 'WireGuard configuration not reloaded automatically',
+                updatedCount,
+                notFoundKeys
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `${updatedCount} user(s) ${enabled ? 'enabled' : 'disabled'} and WireGuard configuration reloaded successfully`,
+            updatedCount,
+            notFoundKeys: notFoundKeys.length > 0 ? notFoundKeys : undefined
+        });
+    } catch (error) {
+        console.error('Error bulk toggling users:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to bulk toggle user status',
+            details: error.message
         });
     }
 });
@@ -532,30 +623,30 @@ app.patch('/api/users/:publicKey', authenticateToken, async (req, res) => {
     try {
         const { publicKey } = req.params;
         const { enabled } = req.body;
-        
+
         if (typeof enabled !== 'boolean') {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'enabled field must be a boolean' 
+            return res.status(400).json({
+                success: false,
+                error: 'enabled field must be a boolean'
             });
         }
 
         const configContent = await fs.readFile(CONFIG_PATH, 'utf8');
         const users = parseUsersFromConfig(configContent);
-        
+
         const user = users.find(u => u.publicKey === publicKey);
         if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'User not found' 
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
             });
         }
 
         user.enabled = enabled;
-        
+
         // Generate new config
         const newConfig = generateConfig(configContent, users);
-        
+
         // Create backup and write new config
         const backupDir = path.join(__dirname, 'backup');
         try {
@@ -563,7 +654,7 @@ app.patch('/api/users/:publicKey', authenticateToken, async (req, res) => {
         } catch (error) {
             console.warn('Could not create backup directory:', error.message);
         }
-        
+
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupPath = path.join(backupDir, `wg0.conf.backup.${timestamp}`);
         await fs.writeFile(backupPath, configContent);
@@ -576,23 +667,23 @@ app.patch('/api/users/:publicKey', authenticateToken, async (req, res) => {
             await execAsync('sudo wg-quick up wg0');
         } catch (reloadError) {
             console.warn('Failed to reload WireGuard configuration:', reloadError.message);
-            return res.json({ 
-                success: true, 
+            return res.json({
+                success: true,
                 message: `User ${enabled ? 'enabled' : 'disabled'} successfully, but WireGuard reload failed. Please reload manually.`,
                 warning: 'WireGuard configuration not reloaded automatically'
             });
         }
 
-        res.json({ 
-            success: true, 
-            message: `User ${enabled ? 'enabled' : 'disabled'} and WireGuard configuration reloaded successfully` 
+        res.json({
+            success: true,
+            message: `User ${enabled ? 'enabled' : 'disabled'} and WireGuard configuration reloaded successfully`
         });
     } catch (error) {
         console.error('Error toggling user:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'Failed to toggle user status',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -602,29 +693,29 @@ app.get('/api/users/:username/config', authenticateToken, async (req, res) => {
     try {
         const { username } = req.params;
         const clientConfigPath = `/etc/wireguard/clients/${username}/${username}.conf`;
-        
+
         // Check if file exists
         try {
             await fs.access(clientConfigPath);
         } catch (error) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Client configuration not found' 
+            return res.status(404).json({
+                success: false,
+                error: 'Client configuration not found'
             });
         }
 
         // Set headers for file download
         res.setHeader('Content-Disposition', `attachment; filename="${username}.conf"`);
         res.setHeader('Content-Type', 'application/octet-stream');
-        
+
         // Send file
         res.sendFile(clientConfigPath);
     } catch (error) {
         console.error('Error downloading config:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'Failed to download configuration',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -634,19 +725,19 @@ app.get('/api/users/:username/config/content', authenticateToken, async (req, re
     try {
         const { username } = req.params;
         const clientConfigPath = `/etc/wireguard/clients/${username}/${username}.conf`;
-        
+
         const configContent = await fs.readFile(clientConfigPath, 'utf8');
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             config: configContent,
             filename: `${username}.conf`
         });
     } catch (error) {
         console.error('Error reading config:', error);
-        res.status(404).json({ 
-            success: false, 
+        res.status(404).json({
+            success: false,
             error: 'Client configuration not found',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -662,14 +753,14 @@ function parseUsersFromConfig(configContent) {
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        
+
         // Check if we're starting a new peer section
         if (line === '[Peer]' || line === '#[Peer]') {
             // Save previous peer if it has required data
             if (currentPeer && (currentPeer.publicKey || currentPeer.allowedIPs)) {
                 users.push(currentPeer);
             }
-            
+
             // Start new peer
             isEnabled = line === '[Peer]';
             currentPeer = {
@@ -686,7 +777,7 @@ function parseUsersFromConfig(configContent) {
             // Extract user name and email from comment (look for lines that start with # but aren't field comments)
             if (line.startsWith('#') && !line.includes('=') && line.length > 1) {
                 const nameInfo = line.substring(1).trim();
-                
+
                 // Check if it contains email in parentheses
                 const emailMatch = nameInfo.match(/^(.+?)\s*\((.+@.+)\)$/);
                 if (emailMatch) {
@@ -701,7 +792,7 @@ function parseUsersFromConfig(configContent) {
                     currentPeer.name = nameInfo;
                 }
             }
-            
+
             // Extract PublicKey (handle both enabled and disabled peers)
             if (line.includes('PublicKey')) {
                 const keyMatch = line.match(/(?:#\s*)?PublicKey\s*=\s*(.+)$/);
@@ -713,7 +804,7 @@ function parseUsersFromConfig(configContent) {
                     }
                 }
             }
-            
+
             // Extract AllowedIPs (handle both enabled and disabled peers)
             if (line.includes('AllowedIPs')) {
                 const ipsMatch = line.match(/(?:#\s*)?AllowedIPs\s*=\s*(.+)$/);
@@ -742,14 +833,14 @@ function generateConfig(originalConfig, users) {
     const lines = originalConfig.split('\n');
     const interfaceLines = [];
     let inInterface = false;
-    
+
     for (const line of lines) {
         if (line.trim() === '[Interface]') {
             inInterface = true;
         } else if (line.trim().startsWith('[Peer]') || line.trim().startsWith('#[Peer]')) {
             break;
         }
-        
+
         if (inInterface) {
             interfaceLines.push(line);
         }
@@ -772,10 +863,10 @@ function generateConfig(originalConfig, users) {
 // Error handling middleware
 app.use((error, req, res, next) => {
     console.error('Unhandled error:', error);
-    res.status(500).json({ 
-        success: false, 
+    res.status(500).json({
+        success: false,
         error: 'Internal server error',
-        details: error.message 
+        details: error.message
     });
 });
 
@@ -783,7 +874,7 @@ app.listen(PORT, () => {
     console.log(`🚀 NARADA server running on http://localhost:${PORT}`);
     console.log(`📁 Config file path: ${CONFIG_PATH}`);
     console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-    
+
     // Check if config file exists
     fs.access(CONFIG_PATH)
         .then(() => console.log(`✅ Configuration file found and accessible`))

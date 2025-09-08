@@ -1,11 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NARADA</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
+            --success-50: #f0fdf4;
+            --success-100: #dcfce7;
+            --success-500: #22c55e;
+            --success-600: #16a34a;
+            --warning-50: #fffbeb;
+            --warning-100: #fef3c7;
+            --warning-500: #f59e0b;
+            --warning-600: #d97706;
+            --error-50: #fef2f2;
+            --error-100: #fee2e2;
+            --error-500: #ef4444;
+            --error-600: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,287 +44,472 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8fafc;
             min-height: 100vh;
-            padding: 15px;
+            color: var(--gray-900);
+            line-height: 1.6;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #05d571, #34495e);
-            color: white;
-            padding: 20px 30px;
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--gray-200);
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
         }
 
-        .header-content {
-            text-align: center;
-            flex: 1;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
         }
 
         .header-logo {
-            max-width: 200px;
+            max-width: 120px;
             height: auto;
-            margin-bottom: 1rem;
         }
 
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 5px;
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .header p {
-            opacity: 0.8;
-            font-size: 1rem;
+        .header-brand i {
+            font-size: 1.5rem;
+            color: var(--primary-500);
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item {
+            padding: 8px 0;
+            color: var(--gray-700);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin: 0 16px;
+        }
+
+        .nav-item:hover {
+            color: var(--gray-900);
+            border-bottom-color: var(--gray-300);
+        }
+
+        .nav-item.active {
+            color: var(--primary-700);
+            border-bottom-color: var(--primary-500);
         }
 
         .main-content {
-            padding: 20px;
+            background: #f8fafc;
+            padding: 32px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            background: white;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-card:nth-child(1) .stat-icon {
+            background: var(--primary-100);
+            color: var(--primary-600);
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background: var(--success-100);
+            color: var(--success-600);
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background: var(--primary-100);
+            color: var(--primary-700);
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            background: var(--error-100);
+            color: var(--error-600);
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
         }
 
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 16px;
         }
 
         .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+            height: 40px;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: var(--primary-500);
             color: white;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+            background: var(--primary-600);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #27ae60, #229954);
+            background: var(--success-500);
             color: white;
         }
 
         .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+            background: var(--success-600);
+            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-warning {
+            background: var(--warning-500);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: var(--warning-600);
+            box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--error-500);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: var(--error-600);
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--gray-500);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-600);
+            box-shadow: 0 4px 6px -1px rgba(107, 114, 128, 0.3);
+        }
+
+        .btn-sm {
+            padding: 10px 16px;
+            font-size: 0.875rem;
+            height: 40px;
+            min-width: 100px;
+        }
+
+        .btn-table {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            height: 28px;
+            min-width: 28px;
+        }
+
+        .bulk-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--primary-50);
+            border: 1px solid var(--primary-200);
+            border-radius: 12px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .selected-count {
+            font-weight: 600;
+            color: var(--primary-700);
+            margin-right: 8px;
         }
 
         .users-table-container {
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid var(--gray-200);
         }
 
         .users-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
         }
 
         .users-table th {
-            background: linear-gradient(135deg, #34495e, #2c3e50);
-            color: white;
-            padding: 12px 15px;
+            background: var(--gray-50);
+            color: var(--gray-700);
+            padding: 16px;
             text-align: left;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--gray-200);
         }
 
         .users-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-100);
             vertical-align: middle;
         }
 
         .users-table tr:hover {
-            background-color: #f8f9fa;
+            background-color: var(--gray-50);
         }
 
         .users-table tr.disabled {
             opacity: 0.6;
-            background-color: #fdf2f2;
+            background-color: var(--error-50);
+        }
+
+        .users-table tr.connected {
+            background-color: var(--success-50);
+            border-left: 3px solid var(--success-500);
+        }
+
+        .users-table tr.connected:hover {
+            background-color: var(--success-100);
+        }
+
+        .users-table tr.selected {
+            background-color: var(--primary-50) !important;
+            border-left: 3px solid var(--primary-500);
+        }
+
+        .users-table tr.selected:hover {
+            background-color: var(--primary-100) !important;
         }
 
         .user-name {
             font-weight: 600;
-            color: #2c3e50;
+            color: var(--gray-900);
+            margin-bottom: 2px;
         }
 
         .user-email {
-            color: #666;
-            font-size: 0.85rem;
+            color: var(--gray-500);
+            font-size: 0.8rem;
         }
 
         .user-status {
-            padding: 4px 8px;
-            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.025em;
         }
 
         .status-active {
-            background: #d4edda;
-            color: #155724;
+            background: var(--success-100);
+            color: var(--success-700);
         }
 
         .status-disabled {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .user-ip {
-            font-family: 'Courier New', monospace;
-            background: #f1f3f4;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 5px;
-        }
-
-        .btn-table {
-            padding: 6px 10px;
-            font-size: 0.8rem;
-            border-radius: 4px;
+            background: var(--error-100);
+            color: var(--error-700);
         }
 
         .connection-status {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
 
         .connection-indicator {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            gap: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
         .connection-indicator.connected {
-            color: #27ae60;
+            color: var(--success-600);
         }
 
         .connection-indicator.disconnected {
-            color: #95a5a6;
+            color: var(--gray-400);
         }
 
         .connection-indicator i {
-            font-size: 0.7rem;
+            font-size: 0.625rem;
         }
 
         .handshake-time {
             font-size: 0.75rem;
-            color: #666;
-            font-style: italic;
+            color: var(--gray-500);
         }
 
         .endpoint {
             font-size: 0.75rem;
-            color: #666;
-            font-family: 'Courier New', monospace;
+            color: var(--gray-500);
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+
+        .user-ip {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: var(--gray-100);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--gray-700);
         }
 
         .usage-stats {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
 
         .usage-item {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 0.8rem;
-            font-family: 'Courier New', monospace;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
         }
 
         .usage-item i {
-            font-size: 0.7rem;
-            width: 10px;
+            font-size: 0.625rem;
+            width: 12px;
         }
 
         .usage-item:first-child {
-            color: #3498db;
+            color: var(--primary-600);
         }
 
         .usage-item:last-child {
-            color: #e67e22;
+            color: var(--warning-600);
         }
 
-        .users-table tr.connected {
-            border-left: 3px solid #27ae60;
-            background-color: #f8fff8;
+        .user-actions {
+            display: flex;
+            gap: 8px;
         }
 
-        .users-table tr.connected:hover {
-            background-color: #f0fff0;
+        .user-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-500);
         }
 
         .sortable {
             cursor: pointer;
             user-select: none;
-            position: relative;
             transition: background-color 0.2s ease;
         }
 
         .sortable:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: var(--gray-100);
         }
 
         .sort-indicator {
-            margin-left: 5px;
-            font-size: 0.7rem;
+            margin-left: 6px;
+            font-size: 0.625rem;
             opacity: 0.7;
-        }
-
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 0.9rem;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
         }
 
         .modal {
@@ -304,216 +520,590 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
-            background-color: white;
+            background: white;
             margin: 5% auto;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 32px;
+            border-radius: 16px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--gray-200);
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .modal-title {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #2c3e50;
+            color: var(--gray-900);
         }
 
         .close {
-            font-size: 2rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            color: #aaa;
+            color: var(--gray-400);
+            transition: color 0.2s ease;
+            padding: 4px;
+            border-radius: 4px;
         }
 
         .close:hover {
-            color: #333;
+            color: var(--gray-600);
+            background: var(--gray-100);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .form-label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #333;
+            color: var(--gray-700);
+            font-size: 0.875rem;
         }
 
         .form-input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
+            padding: 12px 16px;
+            border: 1px solid var(--gray-300);
             border-radius: 8px;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
+            transition: all 0.2s ease;
+            background: white;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #3498db;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 3px;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #666;
+            padding: 80px 20px;
+            color: var(--gray-500);
         }
 
         .empty-state i {
             font-size: 4rem;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             opacity: 0.3;
+            color: var(--gray-400);
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-500);
+        }
+
+        .loading-state .loader {
+            margin: 0 auto 20px;
+        }
+
+        .loading-state h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .loading-state p {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        /* Search and Filter Styles */
+        .search-filter-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: white;
+            position: relative;
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 0.875rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 16px 0;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .pagination-info {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            background: white;
+            color: var(--gray-700);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+
+        /* Loader Styles */
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: 12px;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top: 3px solid var(--primary-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .table-container-wrapper {
+            position: relative;
+        }
+
+        /* Auto-refresh indicator */
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-500);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            z-index: 1000;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Administrator Page Styles */
+        .admin-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+
+        .admin-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .admin-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-section p {
+            color: var(--gray-600);
+            margin-bottom: 20px;
+            font-size: 0.875rem;
         }
 
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
             .header {
-                padding: 15px 20px;
+                padding: 12px 16px;
             }
-            
-            .header h1 {
-                font-size: 1.5rem;
+
+            .header-left {
+                gap: 16px;
             }
-            
+
+            .nav-item {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
             .main-content {
-                padding: 15px;
+                padding: 24px 16px;
             }
-            
-            .controls {
+
+            .search-filter-bar {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
+            .bulk-actions {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .bulk-actions .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+
             .stats {
                 grid-template-columns: 1fr;
+                gap: 16px;
             }
-            
+
             .users-table-container {
                 overflow-x: auto;
             }
-            
+
             .users-table {
-                min-width: 600px;
+                min-width: 700px;
             }
-            
+
             .users-table th,
             .users-table td {
-                padding: 8px 10px;
+                padding: 12px;
                 font-size: 0.8rem;
             }
-            
+
             .btn-table {
                 padding: 4px 8px;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
-            <div class="header-content">
-                <img id="headerLogo" alt="Logo" class="header-logo" style="display: none;" onerror="this.style.display='none';">
-                <h1><i id="headerIcon" class="fas fa-shield-alt"></i> NARADA </h1>
-                <p>Manage your WireGuard VPN users with ease</p>
+            <div class="header-left">
+                <div class="header-brand">
+                    <img id="headerLogo" alt="Logo" class="header-logo" style="display: none;"
+                        onerror="this.style.display='none';">
+                    <i id="headerIcon" class="fas fa-shield-alt"></i>
+                </div>
+                <nav class="nav-menu">
+                    <span class="nav-item active" onclick="controller.showClients()">
+                        Clients
+                    </span>
+                    <span class="nav-item" onclick="controller.showAdministrator()">
+                        Administrator
+                    </span>
+                </nav>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-secondary btn-sm" onclick="controller.logout()" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
         </div>
 
         <div class="main-content">
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalUsers">0</div>
-                    <div class="stat-label">Total Users</div>
+            <!-- Clients View -->
+            <div id="clientsView">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="totalUsers">0</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="activeUsers">0</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-wifi"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="connectedUsers">0</div>
+                            <div class="stat-label">Connected Now</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-pause-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="disabledUsers">0</div>
+                            <div class="stat-label">Disabled Users</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #27ae60, #229954);">
-                    <div class="stat-number" id="activeUsers">0</div>
-                    <div class="stat-label">Active Users</div>
+
+                <!-- Search and Filter Bar -->
+                <div class="search-filter-bar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="searchInput"
+                            placeholder="Search users by name or email..."
+                            oninput="controller.handleSearch(this.value)">
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="items-per-page-container">
+                            <label for="itemsPerPageSelect" style="font-size: 0.875rem; color: var(--gray-600); margin-right: 8px;">Show:</label>
+                            <select id="itemsPerPageSelect" class="items-per-page-select" onchange="controller.changeItemsPerPage(this.value)">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="openAddUserModal()">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                        <button class="btn btn-secondary" onclick="controller.manualRefresh()">
+                            <i class="fas fa-refresh"></i> Refresh
+                        </button>
+                    </div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #3498db, #2980b9);">
-                    <div class="stat-number" id="connectedUsers">0</div>
-                    <div class="stat-label">Connected Now</div>
+
+                <!-- Bulk Actions -->
+                <div id="bulkActions" class="bulk-actions" style="display: none;">
+                    <i class="fas fa-check-square" style="color: var(--primary-500); margin-right: 8px;"></i>
+                    <span class="selected-count">0 users selected</span>
+                    <button class="btn btn-success btn-sm" onclick="controller.bulkToggleUsers(true)">
+                        <i class="fas fa-play"></i> Enable
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="controller.bulkToggleUsers(false)">
+                        <i class="fas fa-pause"></i> Disable
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="controller.clearSelection()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
-                    <div class="stat-number" id="disabledUsers">0</div>
-                    <div class="stat-label">Disabled Users</div>
+
+                <div id="usersContainer">
+                    <div class="table-container-wrapper">
+                        <div class="users-table-container">
+                            <table class="users-table" id="usersTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;">
+                                            <input type="checkbox" id="selectAll"
+                                                onchange="controller.toggleSelectAll(this.checked)" title="Select All">
+                                        </th>
+                                        <th class="sortable" data-sort="name" onclick="controller.setSortBy('name')">
+                                            User
+                                        </th>
+                                        <th class="sortable" data-sort="status"
+                                            onclick="controller.setSortBy('status')">
+                                            Status
+                                        </th>
+                                        <th class="sortable" data-sort="connection"
+                                            onclick="controller.setSortBy('connection')">
+                                            Connection
+                                        </th>
+                                        <th>IP Address</th>
+                                        <th class="sortable" data-sort="usage" onclick="controller.setSortBy('usage')">
+                                            Usage
+                                        </th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <!-- Users will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="tableLoader" class="loader-overlay" style="display: none;">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination-container" id="paginationContainer" style="display: none;">
+                        <div class="pagination-info" id="paginationInfo">
+                            Showing 1-10 of 25 users
+                        </div>
+                        <div class="pagination" id="pagination">
+                            <!-- Pagination buttons will be generated here -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="controls">
-                <button class="btn btn-primary" onclick="openAddUserModal()">
-                    <i class="fas fa-user-plus"></i> Add New User
-                </button>
-                <button class="btn btn-success" onclick="reloadConfig()">
-                    <i class="fas fa-sync-alt"></i> Reload Config
-                </button>
-            </div>
+            <!-- Administrator View -->
+            <div id="administratorView" style="display: none;">
+                <div class="admin-content">
+                    <div class="admin-section">
+                        <h3>
+                            <i class="fas fa-cog" style="color: var(--primary-500);"></i>
+                            Project Settings
+                        </h3>
+                        <p>Configure your project name and branding</p>
 
-            <div id="usersContainer">
-                <div class="users-table-container">
-                    <table class="users-table" id="usersTable">
-                        <thead>
-                            <tr>
-                                <th class="sortable" data-sort="name" onclick="controller.setSortBy('name')">
-                                    User
-                                </th>
-                                <th class="sortable" data-sort="status" onclick="controller.setSortBy('status')">
-                                    Status
-                                </th>
-                                <th class="sortable" data-sort="connection" onclick="controller.setSortBy('connection')">
-                                    Connection
-                                </th>
-                                <th>IP Address</th>
-                                <th class="sortable" data-sort="usage" onclick="controller.setSortBy('usage')">
-                                    Usage
-                                </th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody">
-                            <!-- Users will be loaded here -->
-                        </tbody>
-                    </table>
+                        <form id="projectSettingsForm">
+                            <div class="form-group">
+                                <label class="form-label" for="adminProjectName">
+                                    <i class="fas fa-tag" style="margin-right: 8px; color: var(--gray-500);"></i>
+                                    Project Name
+                                </label>
+                                <input type="text" id="adminProjectName" class="form-input" placeholder="NARADA" value="NARADA">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="adminLogoUrl">
+                                    <i class="fas fa-image" style="margin-right: 8px; color: var(--gray-500);"></i>
+                                    Logo URL
+                                </label>
+                                <input type="url" id="adminLogoUrl" class="form-input" placeholder="https://example.com/logo.png">
+                                <small style="color: var(--gray-500); font-size: 0.8rem; margin-top: 8px; display: block;">
+                                    <i class="fas fa-info-circle" style="margin-right: 4px;"></i>
+                                    Leave empty to use default icon
+                                </small>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="admin-section">
+                        <h3>
+                            <i class="fas fa-info-circle" style="color: var(--primary-500);"></i>
+                            System Information
+                        </h3>
+                        <p>Current system and application details</p>
+                        
+                        <div style="display: grid; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-200);">
+                                <span style="color: var(--gray-600);">Application Version</span>
+                                <span style="font-weight: 500;">1.0.0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-200);">
+                                <span style="color: var(--gray-600);">WireGuard Config</span>
+                                <span style="font-weight: 500; font-family: monospace;">wg0.conf</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                                <span style="color: var(--gray-600);">Auto-refresh Interval</span>
+                                <span style="font-weight: 500;">15 seconds</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -523,20 +1113,29 @@
     <div id="addUserModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Add New User</h2>
-                <span class="close" onclick="closeAddUserModal()">&times;</span>
+                <div>
+                    <h2 class="modal-title">Add New User</h2>
+                    <p style="color: var(--gray-500); font-size: 0.875rem; margin-top: 4px;">Create a new WireGuard VPN user</p>
+                </div>
+                <button class="close" onclick="closeAddUserModal()" style="border: none; background: none;">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <form id="addUserForm">
                 <div class="form-group">
-                    <label class="form-label" for="userEmail">Email Address</label>
-                    <input type="email" id="userEmail" class="form-input" placeholder="Enter user email (e.g., john@example.com)" required>
-                    <small style="color: #666; font-size: 0.9rem; margin-top: 5px; display: block;">
+                    <label class="form-label" for="userEmail">
+                        <i class="fas fa-envelope" style="margin-right: 8px; color: var(--gray-500);"></i>
+                        Email Address
+                    </label>
+                    <input type="email" id="userEmail" class="form-input" placeholder="john@example.com" required>
+                    <small style="color: var(--gray-500); font-size: 0.8rem; margin-top: 8px; display: block;">
+                        <i class="fas fa-info-circle" style="margin-right: 4px;"></i>
                         Username will be automatically extracted from email
                     </small>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 0;">
                     <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        <i class="fas fa-plus"></i> Add User
+                        <i class="fas fa-plus"></i> Create User
                     </button>
                 </div>
             </form>
